@@ -5,7 +5,7 @@ import json
 import streamlit as st
 from io import StringIO
 
-pip install google-generativeai
+!pip install google-generativeai
 
 # API Key setup for Google Generative AI
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
