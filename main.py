@@ -67,7 +67,7 @@ def main():
 
         # Generate text from the AI model
         try:
-            response = genai.generate_text(
+            response = model.generate_content(
                 **defaults,
                 prompt=prompt
             )
