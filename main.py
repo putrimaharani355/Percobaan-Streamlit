@@ -3,7 +3,6 @@ import google.generativeai as genai
 import json
 GEMINI_API_KEY = "AIzaSyCliDeFpsIaE8yfin9MJWSWgoV8zxMMgDE"
 # Konfigurasi API Key
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY is not set. Please set it as an environment variable.")
