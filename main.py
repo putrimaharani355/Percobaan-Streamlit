@@ -7,7 +7,10 @@ from io import StringIO
 
 
 # API Key setup for Google Generative AI
-genai.configure(api_key=os.environ["AIzaSyCLFuWZiNKwnScFFSplgAL_yhN3G2SOHzM"])
+import google.generativeai as genai
+
+# Directly assign the API key (for testing purposes only)
+genai.configure(api_key="AIzaSyCLFuWZiNKwnScFFSplgAL_yhN3G2SOHzM")
 
 # Default generation configuration
 defaults = {
