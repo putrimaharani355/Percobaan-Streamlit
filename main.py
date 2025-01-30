@@ -5,31 +5,34 @@ import json
 import streamlit as st
 from io import StringIO
 
-
-# API Key setup for Google Generative AI
-import google.generativeai as genai
-
-# Directly assign the API key (for testing purposes only)
-genai.configure(api_key="AIzaSyCLFuWZiNKwnScFFSplgAL_yhN3G2SOHzM")
+GEMINI_API_KEY="AIzaSyCLFuWZiNKwnScFFSplgAL_yhN3G2SOHzM"
+# Configure the API Key (use environment variable for security)
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Default generation configuration
 defaults = {
-  'model': 'models/text-bison-001',
-  'temperature': 0.7,
-  'candidate_count': 1,
-  'top_k': 40,
-  'top_p': 0.95,
-  'max_output_tokens': 1024,
-  'stop_sequences': [],
-  'safety_settings': [
-    {"category": "HARM_CATEGORY_DEROGATORY", "threshold": "BLOCK_LOW_AND_ABOVE"},
-    {"category": "HARM_CATEGORY_TOXICITY", "threshold": "BLOCK_LOW_AND_ABOVE"},
-    {"category": "HARM_CATEGORY_VIOLENCE", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-    {"category": "HARM_CATEGORY_SEXUAL", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-    {"category": "HARM_CATEGORY_MEDICAL", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-    {"category": "HARM_CATEGORY_DANGEROUS", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-  ],
+    'model': 'models/text-bison-001',
+    'temperature': 0.7,
+    'candidate_count': 1,
+    'top_k': 40,
+    'top_p': 0.95,
+    'max_output_tokens': 1024,
+    'stop_sequences': [],
+    'safety_settings': [
+        {"category": "HARM_CATEGORY_DEROGATORY", "threshold": "BLOCK_LOW_AND_ABOVE"},
+        {"category": "HARM_CATEGORY_TOXICITY", "threshold": "BLOCK_LOW_AND_ABOVE"},
+        {"category": "HARM_CATEGORY_VIOLENCE", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+        {"category": "HARM_CATEGORY_SEXUAL", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+        {"category": "HARM_CATEGORY_MEDICAL", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+        {"category": "HARM_CATEGORY_DANGEROUS", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+    ],
 }
+
+# Initialize the model with the default configuration
+model = genai.GenerativeModel(
+    model_name="text-bison-001",
+    generation_config=defaults
+)
 
 def generate_prompt(format_option, user_input):
     """Construct the prompt based on format and user input."""
@@ -68,7 +71,6 @@ def main():
         # Generate text from the AI model
         try:
             response = model.generate_content(
-                **defaults,
                 prompt=prompt
             )
             generated_result = response.result
