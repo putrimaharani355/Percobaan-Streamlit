@@ -1,129 +1,75 @@
+import streamlit
+!pip install -q google-generativeai
+
+import google.generativeai as genai 
+import csv
 import os
-import google.generativeai as genai
-import pandas as pd
-import json
-import streamlit as st
-from io import StringIO
 
-GEMINI_API_KEY="AIzaSyCLFuWZiNKwnScFFSplgAL_yhN3G2SOHzM"
-# Configure the API Key (use environment variable for security)
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+genai.configure(api_key="AIzaSyCLFuWZiNKwnScFFSplgAL_yhN3G2SOHzM")
 
-# Default generation configuration
 defaults = {
-    'model': 'models/text-bison-001',
-    'temperature': 0.7,
-    'candidate_count': 1,
-    'top_k': 40,
-    'top_p': 0.95,
-    'max_output_tokens': 1024,
-    'stop_sequences': [],
-    'safety_settings': [
-        {"category": "HARM_CATEGORY_DEROGATORY", "threshold": "BLOCK_LOW_AND_ABOVE"},
-        {"category": "HARM_CATEGORY_TOXICITY", "threshold": "BLOCK_LOW_AND_ABOVE"},
-        {"category": "HARM_CATEGORY_VIOLENCE", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-        {"category": "HARM_CATEGORY_SEXUAL", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-        {"category": "HARM_CATEGORY_MEDICAL", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-        {"category": "HARM_CATEGORY_DANGEROUS", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-    ],
+  "temperature": 1,
+  "top_p": 0.95,
+  "top_k": 40,
+  "max_output_tokens": 8192,
+  "response_mime_type": "text/plain",
 }
-
-# Initialize the model with the default configuration
 model = genai.GenerativeModel(
-    model_name="text-bison-001",
-    generation_config=defaults
+  model_name="gemini-2.0-flash-exp",
+  generation_config=generation_config,
 )
 
-def generate_prompt(format_option, user_input):
-    """Construct the prompt based on format and user input."""
-    return f"input ({format_option}): {user_input}\noutput:"
+def generate_prompt(format_option):
+        user_input = input("Enter your input: ")
+        prompt = f"""input ({format_option}): {user_input}
+        output:"""
+        return prompt
 
 def save_output_to_file(output, file_path):
-    """Save the generated content to a file."""
     try:
         with open(file_path, "w", encoding="utf-8") as file:
             file.write(output)
-        st.success(f"Output saved to {file_path}")
+        print(f"Output saved to {file_path}")
     except Exception as e:
-        st.error(f"Error saving output to {file_path}: {e}")
+        print(f"Error saving output to {file_path}: {e}")
 
-def convert_df(df):
-    """Convert DataFrame to CSV for downloading."""
-    return df.to_csv().encode('utf-8')
 
-def main():
-    st.title("Text Generation Streamlit App")
+print("Choose a data format:")
+print("1. CSV")
+print("2. JSON")
+print("3. TXT")
 
-    # Sidebar for user input
-    st.sidebar.header("User Input")
-    
-    # Format choice
-    format_option = st.sidebar.selectbox("Choose a data format:", ["CSV", "JSON", "TXT"])
-    
-    # User input
-    user_input = st.sidebar.text_input("Enter your input:")
+# Get user choice
+format_choice = input("Enter the number of the desired format: ")
 
-    # Submit button
-    if st.sidebar.button("Submit"):
-        # Generate the prompt based on format and input
-        prompt = generate_prompt(format_option, user_input)
+# Map user choice to format and file extension
+format_mapping = {
+    "1": {"format": "CSV", "extension": "csv"},
+    "2": {"format": "JSON", "extension": "json"},
+    "3": {"format": "TXT", "extension": "txt"},
+}
 
-        # Generate text from the AI model
-        try:
-            response = model.generate_content(
-                prompt=prompt
-            )
-            generated_result = response.result
-            st.header("Generated Result:")
-            
-            if format_option == "CSV":
-                # Process CSV formatted result
-                df = pd.read_csv(StringIO(generated_result), sep="|", skipinitialspace=True)
-                df.columns = df.columns.str.strip()  # Clean column names
-                df = df.loc[:, ~df.columns.str.contains('Unnamed')]  # Remove unnamed columns
+selected_format = format_mapping.get(format_choice)
 
-                st.table(df)
+if selected_format:
+    # Generate prompt based on the selected format
+    prompt = generate_prompt(selected_format["format"])
 
-                # Provide option to download CSV
-                csv = convert_df(df)
-                st.sidebar.download_button(
-                    label="Download CSV",
-                    data=csv,
-                    file_name="generated_data.csv",
-                    mime="text/csv"
-                )
+    # Call your text generation function with the generated prompt
+    response = model.generate_content(
+        **defaults,
+        prompt=prompt
+    )
 
-            elif format_option == "JSON":
-                # Parse JSON and display it
-                json_content = generated_result.replace('```json', '').replace('```', '').strip()
-                try:
-                    st.json(json.loads(json_content), expanded=True)
-                except json.JSONDecodeError as e:
-                    st.write("Invalid JSON syntax:", e)
-                    st.write("Original content:")
-                    st.write(generated_result)
+    # Get the generated result
+    generated_result = response.result
+    print("Generated Result:")
+    print(generated_result)
 
-                # Provide option to download JSON
-                st.sidebar.download_button(
-                    label="Download JSON",
-                    data=generated_result,
-                    file_name="generated_data.json",
-                    mime="application/json"
-                )
-
-            elif format_option == "TXT":
-                st.write(generated_result)
-
-                # Provide option to download TXT
-                st.sidebar.download_button(
-                    label="Download TXT",
-                    data=generated_result,
-                    file_name="generated_data.txt",
-                    mime="text/plain"
-                )
-
-        except Exception as e:
-            st.error(f"Error generating text: {e}")
-
-if __name__ == "__main__":
-    main()
+    # Save the generated result to a file using the save_output_to_file function
+    file_extension = selected_format["extension"]
+    file_name = input("Enter the desired file name: ")
+    file_path = f"{file_name}.{file_extension}"
+    save_output_to_file(generated_result, file_path)
+else:
+    print("Invalid format choice. Please choose a valid format.")
