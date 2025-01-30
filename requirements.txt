@@ -1,0 +1,4 @@
+streamlit 
+jsons
+google-generativeai
+pandas
