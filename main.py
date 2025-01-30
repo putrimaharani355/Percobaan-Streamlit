@@ -5,9 +5,9 @@ import json
 import streamlit as st
 from io import StringIO
 
-set GEMINI_API_KEY="AIzaSyCLFuWZiNKwnScFFSplgAL_yhN3G2SOHzM"
+
 # API Key setup for Google Generative AI
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+genai.configure(api_key=os.environ["AIzaSyCLFuWZiNKwnScFFSplgAL_yhN3G2SOHzM"])
 
 # Default generation configuration
 defaults = {
